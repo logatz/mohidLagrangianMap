@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+title: "MOHID Lagrangian Map"
+type: software
+authors:
+  - family-names: "Garbossa"
+    given-names: "L.H.P."
+email: "garbossa@gmail.com"
+repository-code: "https://github.com/logatz/mohidLagrangianMap"
+url: "https://github.com/logatz/mohidLagrangianMap"
+license: "MIT"
+abstract: "Python tool for inspection and cartographic visualization of MOHID Lagrangian particle outputs with optional bathymetry and local DEM/topography layers."

@@ -118,6 +118,19 @@ The script can:
 - generated outputs such as maps and animations are ignored by Git
 - `NorthArrow.png` is versioned because it is part of the cartographic layout
 
+## How to Cite
+
+If you use this repository in academic work, reports, or technical documentation, please cite the software repository.
+
+Suggested citation:
+
+```text
+Garbossa, L.H.P. MOHID Lagrangian Map. GitHub repository.
+Available at: https://github.com/logatz/mohidLagrangianMap
+```
+
+GitHub can also generate a citation directly from the `CITATION.cff` file included in this repository.
+
 ## License
 
 This project is distributed under the MIT License. See `LICENSE` for details.
