@@ -4,6 +4,10 @@ Python tool for inspecting and plotting MOHID Lagrangian particle outputs stored
 
 It is designed for quick scientific visualization of particle trajectories with optional bathymetry and local DEM/topography support, plus export of static maps and animations.
 
+## Example
+
+![Example map](docs/assets/example_map.png)
+
 ## Features
 
 - automatic discovery of particle coordinate groups in MOHID-style HDF5 files

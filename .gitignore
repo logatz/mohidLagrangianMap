@@ -26,3 +26,4 @@ _tmp_mohid_frames/
 *.tiff
 
 !NorthArrow.png
+!docs/assets/example_map.png
