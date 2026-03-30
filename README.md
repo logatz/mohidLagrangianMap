@@ -255,7 +255,7 @@ If you use this repository in academic work, reports, or technical documentation
 Suggested citation:
 
 ```text
-Garbossa, L.H.P. MOHID Lagrangian Map. GitHub repository.
+Garbossa, L.H.P. MOHID Lagrangian and Properties Maps. GitHub repository.
 Available at: https://github.com/logatz/mohidLagrangianMap
 ```
 
