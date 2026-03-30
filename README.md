@@ -1,6 +1,6 @@
-# MOHID Lagrangian Map
+# MOHID Lagrangian and Properties Maps
 
-Python tool for inspecting and plotting MOHID Lagrangian particle outputs stored in HDF5 files.
+Python tool for inspecting and plotting MOHID Lagrangian particle and properties outputs stored in HDF5 files.
 
 It is designed for quick scientific visualization of particle trajectories with optional bathymetry and local DEM/topography support, plus export of static maps and animations.
 
