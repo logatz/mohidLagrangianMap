@@ -507,8 +507,8 @@ def add_scale_bar(
 
     x0 = xmin + xpos * xspan
     y0 = ymin + ypos * yspan
-    tick_h = 0.012 * yspan
-    bar_h = 0.018 * yspan
+    tick_h = 0.008 * yspan
+    bar_h = 0.012 * yspan
     segment_count = 4
     segment_dx = bar_dx / segment_count
 
@@ -520,25 +520,35 @@ def add_scale_bar(
             segment_dx,
             bar_h,
             facecolor=face,
-            edgecolor="black",
-            lw=1.0,
+            edgecolor="#202020",
+            lw=0.7,
             zorder=6,
         )
         ax.add_patch(rect)
 
-    ax.plot([x0, x0 + bar_dx], [y0 + bar_h, y0 + bar_h], color="black", lw=1.0, zorder=6)
-    ax.plot([x0, x0], [y0, y0 + bar_h + tick_h], color="black", lw=1.0, zorder=6)
-    ax.plot([x0 + bar_dx, x0 + bar_dx], [y0, y0 + bar_h + tick_h], color="black", lw=1.0, zorder=6)
+    ax.plot([x0, x0 + bar_dx], [y0 + bar_h, y0 + bar_h], color="#202020", lw=0.7, zorder=6)
+    ax.plot([x0, x0], [y0, y0 + bar_h + tick_h], color="#202020", lw=0.7, zorder=6)
+    ax.plot([x0 + bar_dx, x0 + bar_dx], [y0, y0 + bar_h + tick_h], color="#202020", lw=0.7, zorder=6)
     ax.text(
         x0 + 0.5 * bar_dx,
-        y0 + bar_h + 1.8 * tick_h,
+        y0 + bar_h + 1.4 * tick_h,
         label,
         ha="center",
         va="bottom",
-        fontsize=9,
-        bbox=dict(boxstyle="round,pad=0.2", fc="white", ec="none", alpha=0.8),
+        fontsize=7.5,
+        color="#303030",
+        bbox=dict(boxstyle="round,pad=0.14", fc="white", ec="none", alpha=0.72),
         zorder=6,
     )
+
+
+def style_map_axes(ax) -> None:
+    ax.set_xlabel("Longitude", fontsize=9, color="#4a4a4a", labelpad=6)
+    ax.set_ylabel("Latitude", fontsize=9, color="#4a4a4a", labelpad=6)
+    ax.tick_params(axis="both", which="major", labelsize=8, colors="#6a6a6a", width=0.6, length=3)
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.8)
+        spine.set_edgecolor("#5a5a5a")
 
 
 def add_bathy_to_axis(ax, bathy, alpha=0.9):
@@ -740,10 +750,9 @@ def create_frame_figure(
 
     ax.set_xlim(xmin, xmax)
     ax.set_ylim(ymin, ymax)
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
-    ax.set_title(f"{title_prefix}\n{times[frame_idx]}")
-    ax.grid(True, alpha=0.25)
+    style_map_axes(ax)
+    ax.set_title(f"{title_prefix}\n{times[frame_idx]}", fontsize=11, color="#2f2f2f", pad=8)
+    ax.grid(True, alpha=0.18, color="#9aa4ad", linewidth=0.55)
     ax.set_aspect("equal" if abs((xmax - xmin) / max(ymax - ymin, 1e-12)) < 8 else "auto")
     add_north_arrow(ax)
     scale_xpos, scale_ypos = choose_scale_bar_position(X, Y, frame_idx, xmin, xmax, ymin, ymax)
