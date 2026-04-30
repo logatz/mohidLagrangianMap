@@ -7,7 +7,7 @@ from typing import List, Optional, Sequence, Tuple
 import h5py
 import numpy as np
 
-from config import DEFAULT_HYDRO_FILE, DEFAULT_WATER_FILE
+from config import DEFAULT_DOMAIN, DEFAULT_HYDRO_FILE, DEFAULT_WATER_FILE, DOMAIN_ALIASES, DOMAIN_CONFIGS
 from .animations import save_rendered_animation
 from .domain import FieldRenderContext
 from .fields_processing import (
@@ -20,6 +20,92 @@ from .fields_rendering import render_scalar_dataset_frame, render_vector_dataset
 from .io_geospatial import read_bathy, read_topography_rasters
 from .io_mohid import choose_frame_index, get_time_strings, print_times, read_grid, read_water_points, sort_mohid_keys
 from .specs import VARIABLE_SPECS, VariableSpec
+
+
+DOMAIN_CHOICES = sorted(set(DOMAIN_CONFIGS.keys()) | set(DOMAIN_ALIASES.keys()))
+
+
+def _apply_domain_defaults(args) -> None:
+    requested_domain = args.domain
+    args.domain = DOMAIN_ALIASES.get(args.domain, args.domain)
+    domain = DOMAIN_CONFIGS[args.domain]
+    args.domain_alias = requested_domain if requested_domain != args.domain else None
+    args.domain_label = domain.label
+    if args.data_root is None:
+        args.data_root = str(domain.data_root)
+    if args.quiver_step is None:
+        args.quiver_step = domain.quiver_step
+    if args.quiver_scale is None and domain.quiver_scale is not None:
+        args.quiver_scale = domain.quiver_scale
+    args.figsize = domain.figsize
+    args.dpi = domain.dpi
+
+
+def _date_token(value: str) -> str:
+    return "".join(ch for ch in value if ch.isdigit())
+
+
+def _data_run_dirs(root: Path) -> List[Path]:
+    if not root.exists():
+        return []
+    return sorted([p for p in root.iterdir() if p.is_dir()], key=lambda p: p.name)
+
+
+def _resolve_data_dir(data_root: Optional[str], date: Optional[str]) -> Optional[Path]:
+    if data_root is None:
+        return None
+
+    root = Path(data_root).expanduser()
+    if not root.exists():
+        if date is None:
+            return None
+        raise FileNotFoundError(f"Diretório de dados não encontrado: {root}")
+
+    if date:
+        token = _date_token(date)
+        matches = [
+            p
+            for p in _data_run_dirs(root)
+            if p.name == date or p.name.startswith(f"{token}_") or p.name.endswith(f"_{token}")
+        ]
+        if not matches:
+            raise FileNotFoundError(f"Nenhuma pasta de dados encontrada para a data '{date}' em {root}")
+        return matches[-1]
+
+    run_dirs = _data_run_dirs(root)
+    if not run_dirs:
+        raise FileNotFoundError(f"Nenhuma subpasta de data encontrada em {root}")
+    return run_dirs[-1]
+
+
+def _resolve_hdf_path(path: Optional[str], data_dir: Optional[Path]) -> Optional[str]:
+    if not path:
+        return path
+
+    original = Path(path).expanduser()
+    is_plain_name = original.parent == Path(".") and not original.is_absolute()
+    if data_dir is not None and is_plain_name:
+        in_data_dir = data_dir / original.name
+        if in_data_dir.exists():
+            return str(in_data_dir)
+
+    if original.exists() or data_dir is None:
+        return str(original)
+
+    in_data_dir = data_dir / original.name
+    if in_data_dir.exists():
+        return str(in_data_dir)
+
+    return str(original)
+
+
+def _resolve_hdf_inputs(args) -> None:
+    data_dir = _resolve_data_dir(args.data_root, args.date)
+    args.data_dir = str(data_dir) if data_dir is not None else None
+    args.hydro = _resolve_hdf_path(args.hydro, data_dir)
+    args.water = _resolve_hdf_path(args.water, data_dir)
+    args.input = _resolve_hdf_path(args.input, data_dir)
+    args.hdf5 = [_resolve_hdf_path(path, data_dir) for path in args.hdf5 or []]
 
 
 def inspect_available_variables(hydro_path: str, water_path: str):
@@ -113,6 +199,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--hydro", default=DEFAULT_HYDRO_FILE, help="Arquivo HDF5 hidrodinâmico padrão")
     p.add_argument("--water", default=DEFAULT_WATER_FILE, help="Arquivo HDF5 de propriedades da água padrão")
     p.add_argument("--input", help="Arquivo HDF5 explícito para uso com --var ou para sobrescrever o padrão do atalho")
+    p.add_argument(
+        "--domain",
+        default=DEFAULT_DOMAIN,
+        choices=DOMAIN_CHOICES,
+        help="Domínio configurado para caminhos e padrões de renderização",
+    )
+    p.add_argument(
+        "--data-root",
+        help="Sobrescreve o diretório raiz do domínio, usando subpastas de data com os HDF5",
+    )
+    p.add_argument("--date", help="Data ou pasta de data a usar dentro de --data-root, ex.: 20251101 ou 20251101_20251102")
     for key, spec in VARIABLE_SPECS.items():
         if spec.mode == "vector":
             help_text = f"Mapa de {spec.title.lower()} com setas e magnitude em cores"
@@ -132,7 +229,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--animate", help="Salva animação .gif ou .mp4")
     p.add_argument("--fps", type=int, default=3, help="FPS da animação")
     p.add_argument("--inspect", action="store_true", help="Lista variáveis e estrutura resumida dos HDF5")
-    p.add_argument("--quiver-step", type=int, default=12, help="Espaçamento das setas de corrente")
+    p.add_argument("--quiver-step", type=int, help="Espaçamento das setas de corrente")
     p.add_argument("--quiver-scale", type=float, help="Escala fixa das setas de corrente; sobrescreve o padrão da variável")
     p.add_argument("--cmap", help="Colormap customizado para uso com --var")
     p.add_argument("--center-zero", action="store_true", help="Centraliza a escala de cores em zero para uso com --var")
@@ -141,8 +238,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Optional[Sequence[str]] = None):
     args = build_parser().parse_args(argv)
+    _apply_domain_defaults(args)
+    _resolve_hdf_inputs(args)
 
     if args.inspect:
+        alias_text = f", alias: {args.domain_alias}" if args.domain_alias else ""
+        print(f"Domínio: {args.domain_label} ({args.domain}{alias_text})")
+        if args.data_dir:
+            print(f"Pasta de dados: {args.data_dir}")
         inspect_available_variables(args.hydro, args.water)
         return
 
@@ -165,7 +268,13 @@ def main(argv: Optional[Sequence[str]] = None):
             fixed_vmin=spec.vmin,
             fixed_vmax=spec.vmax,
         )
-        context = FieldRenderContext(topography=topography, vmin=vmin, vmax=vmax, dpi=140)
+        context = FieldRenderContext(
+            topography=topography,
+            vmin=vmin,
+            vmax=vmax,
+            dpi=args.dpi,
+            figsize=args.figsize,
+        )
 
         def render_frame(i: int, output: Optional[str]):
             render_scalar_dataset_frame(dataset, context, i, output=output)
@@ -187,7 +296,8 @@ def main(argv: Optional[Sequence[str]] = None):
             vmax=vmax,
             quiver_step=max(args.quiver_step, 1),
             quiver_scale_override=args.quiver_scale,
-            dpi=140,
+            dpi=args.dpi,
+            figsize=args.figsize,
         )
 
         def render_frame(i: int, output: Optional[str]):

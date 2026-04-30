@@ -106,6 +106,33 @@ Inspect the available variables:
 python3 main.py fields --inspect
 ```
 
+By default, the fields CLI uses the `bisc` domain (also accepted as `scib` or
+`florianopolis`) for Baía da Ilha de Santa Catarina, with runs under
+`/home/garbossa/mnt/qnap/saida/mohid/Florianopolis`. The larger `sc` domain
+(also accepted as `sc_pr_sp`) uses `/home/garbossa/mnt/qnap/saida/mohid/SC_PR_SP`.
+In both cases, each run is stored in a date folder such as `20251101_20251102`.
+If no date is provided, the most recent date folder is used.
+
+Choose a specific date folder:
+
+```bash
+python3 main.py fields --domain bisc --date 20251101 --inspect
+python3 main.py fields --domain bisc --date 20251101 --temp --layer 0 --save temperatura.png
+```
+
+Use the larger SC/PR/SP domain:
+
+```bash
+python3 main.py fields --domain sc --date 20260228 --inspect
+python3 main.py fields --domain sc --date 20260228 --curr --save correntes_sc_pr_sp.png
+```
+
+Use another data root while keeping the selected domain's rendering defaults:
+
+```bash
+python3 main.py fields --domain sc_pr_sp --data-root /path/to/SC_PR_SP --date 20251101 --curr --save correntes.png
+```
+
 You can also provide one or more HDF5 files directly in the command line.
 This is useful when the files do not use the default names `Hydrodynamic_2.hdf5`
 and `WaterProperties_2.hdf5`. The script will inspect the files and use the one

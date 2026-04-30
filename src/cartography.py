@@ -42,7 +42,7 @@ def _nice_number(value: float) -> float:
     return nice_fraction * (10 ** exponent)
 
 
-def add_north_arrow(ax, xpos: float = 0.89, ypos: float = 0.80, size: float = 0.20) -> None:
+def add_north_arrow(ax, xpos: float = 0.03, ypos: float = 0.80, size: float = 0.20) -> None:
     image_path = NORTH_ARROW_PATH
     if not image_path.exists():
         return

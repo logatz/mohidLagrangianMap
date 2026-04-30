@@ -37,6 +37,7 @@ class FieldRenderContext:
     quiver_step: int = 12
     quiver_scale_override: Optional[float] = None
     dpi: int = 140
+    figsize: Tuple[float, float] = (9.0, 7.0)
 
 
 @dataclass

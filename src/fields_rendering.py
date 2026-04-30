@@ -61,8 +61,9 @@ def plot_scalar_frame(
     topography=None,
     output: Optional[str] = None,
     dpi: int = 140,
+    figsize: Tuple[float, float] = (9.0, 7.0),
 ):
-    fig, ax = plt.subplots(figsize=(9, 7))
+    fig, ax = plt.subplots(figsize=figsize)
     xmin, xmax, ymin, ymax = grid_limits_from_grid(lon, lat)
     add_bathy_to_axis(ax, bathy)
     add_topography_to_axis(ax, topography, xmin, xmax, ymin, ymax)
@@ -117,8 +118,9 @@ def plot_vector_frame(
     topography=None,
     output: Optional[str] = None,
     dpi: int = 140,
+    figsize: Tuple[float, float] = (9.0, 7.0),
 ):
-    fig, ax = plt.subplots(figsize=(9, 7))
+    fig, ax = plt.subplots(figsize=figsize)
     xmin, xmax, ymin, ymax = grid_limits_from_grid(lon, lat)
     add_bathy_to_axis(ax, bathy)
     add_topography_to_axis(ax, topography, xmin, xmax, ymin, ymax)
@@ -215,6 +217,7 @@ def render_scalar_dataset_frame(
         topography=context.topography,
         output=output,
         dpi=context.dpi,
+        figsize=context.figsize,
     )
 
 
@@ -245,4 +248,5 @@ def render_vector_dataset_frame(
         topography=context.topography,
         output=output,
         dpi=context.dpi,
+        figsize=context.figsize,
     )
